@@ -1,20 +1,18 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:maliye_app/components/restart_widget.dart';
-import 'package:maliye_app/providers/auth_api.dart';
-import 'package:maliye_app/providers/index_provider.dart';
-import 'package:maliye_app/providers/auction_list.dart';
-import 'package:maliye_app/providers/bookmark_provider.dart';
-import 'package:maliye_app/providers/tendor_list.dart';
-import 'package:maliye_app/ui/common/index.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'config/constants.dart';
-import 'config/unfocus.dart';
 import 'models/user.dart';
+import 'config/unfocus.dart';
+import 'config/constants.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:maliye_app/ui/common/index.dart';
+import 'package:maliye_app/providers/auth_api.dart';
+import 'package:maliye_app/providers/tendor_list.dart';
+import 'package:maliye_app/providers/auction_list.dart';
+import 'package:maliye_app/providers/index_provider.dart';
+import 'package:maliye_app/components/restart_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:maliye_app/providers/bookmark_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
