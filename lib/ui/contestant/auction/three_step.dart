@@ -373,10 +373,10 @@ class _DocumentAcceptionBodyState extends State<DocumentAcceptionBody> {
       text = "Kabul edilmedi";
       color = Colors.red;
       nextPage = null;
-    } else if (widget.lot.buyerSubmissionStatus.code == "refused") {
+    } else if (widget.lot.buyerSubmissionStatus.code == "accepted") {
       text = "Tassyklandy";
       nextPage = null;
-    } else if (widget.lot.documents.isEmpty) {
+    } else if (!widget.lot.formSubmission) {
       text = "Resminama tabşyrmak";
       note = widget.lot.documentSubmissionStatus.note;
       nextPage = DocumentsUpload(
@@ -423,8 +423,7 @@ class _DocumentAcceptionBodyState extends State<DocumentAcceptionBody> {
         note = widget.lot.documentSubmissionStatus.note;
         color = Colors.red;
       }
-    }
-    else if (docSubmission.status == Status.INREVIEW) {
+    } else if (docSubmission.status == Status.INREVIEW) {
       text = "Resminamalaryňyz seredilýär";
       color = yellow;
       nextPage = null;
@@ -472,9 +471,7 @@ class _DocumentAcceptionBodyState extends State<DocumentAcceptionBody> {
     }
 
     return OutlinedButton(
-      onPressed: nextPage == null
-          ? (){}
-          : () => navigateTo(context, nextPage),
+      onPressed: nextPage == null ? () {} : () => navigateTo(context, nextPage),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(

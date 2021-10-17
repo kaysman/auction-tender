@@ -121,10 +121,11 @@ class _LotGameState extends State<LotGame> {
     });
 
     socket.on("percentage:updated", (updatedPercentage) {
-      if (updatedPercentage['status'] == 200){
+      if (updatedPercentage['status'] == 200) {
         print("Percentage Updated");
         print(updatedPercentage);
-        percentage = double.tryParse(updatedPercentage['message']['increase_percentage']);
+        percentage = double.tryParse(
+            updatedPercentage['message']['increase_percentage']);
       }
       setState(() {});
     });
@@ -177,9 +178,9 @@ class _LotGameState extends State<LotGame> {
               if (response['message']['lot_result']['winner_buyer_id'] !=
                   null) {
                 // setState(() {
-                  winner = Buyer.fromJson(
-                    response['message']['lot_result']['winner'],
-                  );
+                winner = Buyer.fromJson(
+                  response['message']['lot_result']['winner'],
+                );
                 // });
               }
             } else {
@@ -260,7 +261,9 @@ class _LotGameState extends State<LotGame> {
     print(percentage);
     print(double.tryParse(lot.startingPrice) ?? 0.0 * percentage ?? 1.0);
 
-    String stepPrice = ((double.tryParse(lot.startingPrice) ?? 0.0 * percentage ?? 1.0) / 100).toStringAsFixed(0);
+    String stepPrice =
+        ((double.tryParse(lot.startingPrice) ?? 0.0 * percentage ?? 1.0) / 100)
+            .toStringAsFixed(0);
 
     return WillPopScope(
       onWillPop: confirmExit,
@@ -338,8 +341,7 @@ class _LotGameState extends State<LotGame> {
                                 color: blueColorCode,
                               ),
                               const SizedBox(height: 8),
-                              if (percentage != null)
-                                Text( stepPrice ),
+                              if (percentage != null) Text(stepPrice),
                               const SizedBox(height: 8),
                               SizedBox(
                                 height: size.height * 0.2,
@@ -375,69 +377,29 @@ class _LotGameState extends State<LotGame> {
                                     SizedBox(
                                       width: size.width * 0.28,
                                       child: CircularCountDownTimer(
-                                        // Countdown duration in Seconds.
                                         duration: _duration,
-
                                         initialDuration: 0,
-
-                                        // Controls (i.e Start, Pause, Resume, Restart) the Countdown Timer.
                                         controller: _controller,
-
-                                        // Width of the Countdown Widget.
                                         width: size.width / 2,
-
-                                        // Height of the Countdown Widget.
                                         height: size.height / 2,
-
-                                        // Ring Color for Countdown Widget.
                                         ringColor: Colors.grey[300],
-
-                                        // Filling Color for Countdown Widget.
                                         fillColor:
                                             Theme.of(context).primaryColor,
-
-                                        // Background Color for Countdown Widget.
                                         backgroundColor: Colors.transparent,
-
-                                        // Border Thickness of the Countdown Ring.
                                         strokeWidth: 8.0,
-
-                                        // Begin and end contours with a flat edge and no extension.
                                         strokeCap: StrokeCap.round,
-
-                                        // Text Style for Countdown Text.
                                         textStyle: TextStyle(
                                           fontSize: size.width * 0.08,
                                           color: Theme.of(context).primaryColor,
                                           fontWeight: FontWeight.bold,
                                         ),
-
-                                        // Format for the Countdown Text.
                                         textFormat: CountdownTextFormat.MM_SS,
-
-                                        // Handles Countdown Timer (true for Reverse Countdown (max to 0), false for Forward Countdown (0 to max)).
                                         isReverse: true,
-
-                                        // Handles Animation Direction (true for Reverse Animation, false for Forward Animation).
                                         isReverseAnimation: true,
-
-                                        // Handles visibility of the Countdown Text.
                                         isTimerTextShown: true,
-
-                                        // Handles the timer start.
                                         autoStart: false,
-
-                                        // This Callback will execute when the Countdown Starts.
-                                        onStart: () {
-                                          // Here, do whatever you want
-                                          // print('Countdown Started');
-                                        },
-
-                                        // This Callback will execute when the Countdown Ends.
-                                        onComplete: () {
-                                          // Here, do whatever you want
-                                          // print('Countdown Ended');
-                                        },
+                                        onStart: () {},
+                                        onComplete: () {},
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -822,7 +784,3 @@ class _LotGameState extends State<LotGame> {
     }
   }
 }
-
-/// TODO: step, area, prosent baha, organization name, region
-/// "Siz yeniji boldunyz, 5 ish gun dowamynda teswirnama gol cekmage gelmeginizi hayys edyaris"
-/// button disappearing after tapped, yenilen bolsa ayyrmaly

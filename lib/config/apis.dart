@@ -1,6 +1,6 @@
 // String baseApiUrl = "http://95.85.97.206"; // real server
-const String baseApiUrl = "http://192.168.31.250"; // local test server
-// const String baseApiUrl = "http://45.93.136.141"; // test server
+// const String baseApiUrl = "http://192.168.31.250"; // local test server
+const String baseApiUrl = "http://45.93.136.141"; // test server
 
 // Ports - Test
 // const String baseAuctionPort = "9062";
