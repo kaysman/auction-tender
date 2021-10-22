@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:maliye_app/components/my_appbar.dart';
 import 'package:maliye_app/config/icons.dart';
 import 'package:maliye_app/providers/auction_list.dart';
 import 'package:maliye_app/providers/auth_api.dart';
-import 'package:maliye_app/providers/index_provider.dart';
 import 'package:maliye_app/providers/tendor_list.dart';
 import 'package:maliye_app/ui/common/home.dart';
 import 'package:maliye_app/ui/common/profil_page.dart';
@@ -132,8 +129,8 @@ class _BounceTabBarState extends State<BounceTabBar> {
     final orientation = MediaQuery.of(context).orientation;
 
     final textSize = orientation == Orientation.landscape
-                  ? size.height * 0.016
-                  : size.height * 0.013;
+        ? size.height * 0.016
+        : size.height * 0.013;
 
     items = List.generate(tabBarData.length, (index) {
       return buildCardIcon(
@@ -151,15 +148,16 @@ class _BounceTabBarState extends State<BounceTabBar> {
 
         return Padding(
           padding: EdgeInsets.only(
-            left: orientation == Orientation.landscape ? size.width * 0.25 : 8.0,
-            right: orientation == Orientation.landscape ? size.width * 0.25 : 8.0,
+            left:
+                orientation == Orientation.landscape ? size.width * 0.25 : 8.0,
+            right:
+                orientation == Orientation.landscape ? size.width * 0.25 : 8.0,
             bottom: 8,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                // height: Platform.isIOS ? size.height * 0.08 : size.height * 0.09,
                 decoration: BoxDecoration(
                   color: widget.backgroundColor,
                   borderRadius: BorderRadius.circular(28),
@@ -174,7 +172,7 @@ class _BounceTabBarState extends State<BounceTabBar> {
                       (index) {
                         final child = items[index];
                         final innerWidget = CircleAvatar(
-                          radius: size.height * 0.029,
+                          radius: size.height * 0.027,
                           backgroundColor: widget.backgroundColor,
                           child: child,
                         );
@@ -201,7 +199,7 @@ class _BounceTabBarState extends State<BounceTabBar> {
                                     ],
                                   ),
                                   child: CircleAvatar(
-                                    radius: size.height * 0.033,
+                                    radius: size.height * 0.031,
                                     backgroundColor: Colors.white,
                                     child: innerWidget,
                                   ),
@@ -230,6 +228,7 @@ class _BounceTabBarState extends State<BounceTabBar> {
                                           : const Color(0xffB5D8FF),
                                     ),
                                   ),
+                                  const SizedBox(height: 8.0),
                                 ],
                               ),
                             ),

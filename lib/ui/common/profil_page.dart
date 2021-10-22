@@ -83,7 +83,9 @@ class _ProfilPageState extends State<ProfilPage> {
                           Container(
                             width: double.infinity,
                             padding: EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 14),
+                              vertical: 4,
+                              horizontal: 14,
+                            ),
                             color: Theme.of(context).primaryColor,
                             child: Text(
                               "Geçen",

@@ -1,6 +1,11 @@
 import 'dart:developer';
+import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:maliye_app/components/cached_image.dart';
 import 'package:maliye_app/components/card_widget.dart';
 import 'package:maliye_app/components/glow_behavior.dart';
@@ -8,6 +13,7 @@ import 'package:maliye_app/components/my_appbar.dart';
 import 'package:maliye_app/config/apis.dart';
 import 'package:maliye_app/config/constants.dart';
 import 'package:maliye_app/config/extensions.dart';
+import 'package:maliye_app/config/icons.dart';
 import 'package:maliye_app/models/bid.dart';
 import 'package:maliye_app/models/buyer.dart';
 import 'package:maliye_app/models/lot.dart';
@@ -22,14 +28,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:wakelock/wakelock.dart';
 
+import 'lot_detail.dart';
+
 const int blueColorCode = 0xff0057B1;
 const int redColorCode = 0xffF13850;
-const int yellowColorCode = 0xffFCE903;
+const dynamic yellowColorCode = null;
 const int greenColorCode = 0xff009639;
 
 // initialized variables
 int _duration = 0;
-List<Buyer> buyerList;
+List<Buyer> buyerList = [];
 Buyer user;
 bool isRunning = false;
 
@@ -115,8 +123,9 @@ class _LotGameState extends State<LotGame> {
     });
 
     socket.on("bid:inserted", (bidInserted) {
-      log(bidInserted.toString());
+      print("Bid Inserted: $bidInserted");
       currentBid = Bid.fromJson(bidInserted['message']);
+      step = int.tryParse(bidInserted['message']['step']) ?? step;
       setState(() {});
     });
 
@@ -170,18 +179,14 @@ class _LotGameState extends State<LotGame> {
           isAcceptedOrRejected = null;
         });
 
-        // print("current_bid:not_accepting");
-        // log("$response");
         if (response['status'] == 200) {
           if (response['message']['lot_result'] != null) {
             if (response['message']['lot_result']['finished'] == true) {
               if (response['message']['lot_result']['winner_buyer_id'] !=
                   null) {
-                // setState(() {
                 winner = Buyer.fromJson(
                   response['message']['lot_result']['winner'],
                 );
-                // });
               }
             } else {
               print("not finished");
@@ -214,23 +219,6 @@ class _LotGameState extends State<LotGame> {
                     .map<Buyer>((json) => Buyer.fromJson(json))
                     .toList();
               });
-
-              // setState(() {
-              //   buyerList = List<Buyer>.generate(buyerList.length, (index) {
-              //     var buyer = buyersResponse
-              //         .where((el) => el['id'] == buyerList[index].id)
-              //         ?.first;
-              //     return Buyer.fromJson({
-              //       "id": buyerList[index].id,
-              //       "user_id": buyerList[index].userId,
-              //       "lot_id": buyerList[index].lotId,
-              //       "ticket_number": buyerList[index].ticketNumber,
-              //       "connected": buyerList[index].connected,
-              //       "last_bid_id": buyer['last_bid_id'],
-              //       "proceed": buyer['proceed'],
-              //     });
-              //   });
-              // });
             }
           }
         }
@@ -250,21 +238,6 @@ class _LotGameState extends State<LotGame> {
 
   @override
   Widget build(BuildContext context) {
-    final apiAuth = Provider.of<ApiAuth>(context, listen: false);
-    final size = MediaQuery.of(context).size;
-    LotBig lot = widget.lot;
-    String price = currentBid == null
-        ? lot.startingPrice
-        : currentBid.bidAmount.toStringAsFixed(3);
-
-    print(lot.startingPrice);
-    print(percentage);
-    print(double.tryParse(lot.startingPrice) ?? 0.0 * percentage ?? 1.0);
-
-    String stepPrice =
-        ((double.tryParse(lot.startingPrice) ?? 0.0 * percentage ?? 1.0) / 100)
-            .toStringAsFixed(0);
-
     return WillPopScope(
       onWillPop: confirmExit,
       child: Scaffold(
@@ -272,232 +245,7 @@ class _LotGameState extends State<LotGame> {
         body: SingleChildScrollView(
           child: Stack(
             children: [
-              Container(
-                child: Column(
-                  children: [
-                    const SizedBox(height: Constants.defaultMargin),
-                    SizedBox(
-                      width: double.infinity,
-                      child: CardWidget(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 5,
-                              child: Text.rich(
-                                TextSpan(
-                                  text: "Desganyň ady:\n",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                  children: [
-                                    TextSpan(
-                                      text: widget.lot.assetName,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(Constants.appBlue),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                textAlign: TextAlign.start,
-                                softWrap: true,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text.rich(
-                                TextSpan(
-                                  text: "LOT № ${widget.lot.lotNumber}",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(Constants.appBlue),
-                                  ),
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: Constants.defaultMargin),
-                    Container(
-                      width: double.infinity,
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 18.0,
-                          vertical: 8.0,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 8.0,
-                          ),
-                          child: Column(
-                            children: [
-                              buildCard(
-                                text: "${formattedPrice(price)}",
-                                color: blueColorCode,
-                              ),
-                              const SizedBox(height: 8),
-                              if (percentage != null) Text(stepPrice),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                height: size.height * 0.2,
-                                width: double.infinity,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (!apiAuth.authorizedUser.isTeamMember)
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            if (!(isAcceptedOrRejected ==
-                                                false)) {
-                                              socket.emit("buyerbid:insert", {
-                                                "admin_bid_id": currentBid.id,
-                                                "proceed": false,
-                                              });
-                                              print("rejected");
-                                            }
-                                          },
-                                          child: Text(
-                                            "Ýatyr",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            primary: const Color(0xffF13850),
-                                          ),
-                                        ),
-                                      ),
-                                    const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: size.width * 0.28,
-                                      child: CircularCountDownTimer(
-                                        duration: _duration,
-                                        initialDuration: 0,
-                                        controller: _controller,
-                                        width: size.width / 2,
-                                        height: size.height / 2,
-                                        ringColor: Colors.grey[300],
-                                        fillColor:
-                                            Theme.of(context).primaryColor,
-                                        backgroundColor: Colors.transparent,
-                                        strokeWidth: 8.0,
-                                        strokeCap: StrokeCap.round,
-                                        textStyle: TextStyle(
-                                          fontSize: size.width * 0.08,
-                                          color: Theme.of(context).primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textFormat: CountdownTextFormat.MM_SS,
-                                        isReverse: true,
-                                        isReverseAnimation: true,
-                                        isTimerTextShown: true,
-                                        autoStart: false,
-                                        onStart: () {},
-                                        onComplete: () {},
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    if (!apiAuth.authorizedUser.isTeamMember)
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            if (!(isAcceptedOrRejected ==
-                                                true)) {
-                                              socket.emit("buyerbid:insert", {
-                                                "admin_bid_id": currentBid.id,
-                                                "proceed": true,
-                                              });
-                                              print("accepted");
-                                            }
-                                          },
-                                          child: Text(
-                                            "Dowam",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            primary: const Color(0xff009639),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 22),
-                              if (!apiAuth.authorizedUser.isTeamMember)
-                                buildCard(
-                                  text: widget.lot.me.ticketNumber.toString(),
-                                  color: buildColor(
-                                    currentBid,
-                                    user,
-                                  ),
-                                  width: size.width * 0.25,
-                                ),
-                              GridView.count(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                crossAxisCount: 3,
-                                childAspectRatio: 2.5,
-                                children: buyerList.map((Buyer buyer) {
-                                  return buildCard(
-                                    color: buildColor(
-                                      currentBid,
-                                      buyer,
-                                    ),
-                                    text: buyer.ticketNumber.toString(),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 22),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: size.height * 0.3,
-                      child: ScrollConfiguration(
-                        behavior: MyScrollBehavior(),
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 18),
-                          child: Swiper(
-                            itemBuilder: (BuildContext context, int index) {
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: MyCachedNetworkImage(
-                                  imageurl:
-                                      widget.lot.lotImages[index].getImage,
-                                ),
-                              );
-                            },
-                            autoplay: true,
-                            itemCount: widget.lot.lotImages.length,
-                            pagination: SwiperPagination(
-                              margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
-                              builder: DotSwiperPaginationBuilder(
-                                color: Colors.white30,
-                                activeColor: Colors.white,
-                                size: 6.0,
-                                activeSize: 8.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
+              buildBody(),
               if (winner != null)
                 Positioned(
                   top: 0,
@@ -508,6 +256,415 @@ class _LotGameState extends State<LotGame> {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildBody() {
+    final apiAuth = Provider.of<ApiAuth>(context, listen: false);
+    final size = MediaQuery.of(context).size;
+    final lot = widget.lot;
+    final price = currentBid == null
+        ? lot.startingPrice
+        : currentBid.bidAmount.toStringAsFixed(3);
+    String stepPrice = (double.tryParse(lot.startingPrice) * percentage / 100)
+        .toStringAsFixed(1);
+
+    dynamic rejectBtnColor =
+        isAcceptedOrRejected != null ? Colors.grey : const Color(0xffDF001C);
+    dynamic acceptBtnColor =
+        isAcceptedOrRejected != null ? Colors.grey : const Color(0xff8FB946);
+    return Stack(
+      children: [
+        Card(
+          margin: EdgeInsets.fromLTRB(
+            16.0,
+            size.height * 0.09,
+            16.0,
+            16.0,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xffffffff),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF7E7E7E)),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16.0,
+                size.height * 0.05,
+                16.0,
+                16.0,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 30, child: VerticalDivider()),
+                      const SizedBox(width: 18.0),
+                      Text(
+                        "$step",
+                        style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xff676D73),
+                        ),
+                      ),
+                      const SizedBox(width: 6.0),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: SvgIcons.hammer,
+                      ),
+                      const SizedBox(width: 18.0),
+                      const SizedBox(height: 30, child: VerticalDivider()),
+                      const SizedBox(width: 18.0),
+                      Text.rich(
+                        TextSpan(
+                          text: "$stepPrice",
+                          children: [
+                            TextSpan(
+                              text: "  TMT",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xff8FB946),
+                              ),
+                            ),
+                          ],
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xff676D73),
+                          ),
+                        ),
+                        textAlign: TextAlign.start,
+                      ),
+                      const SizedBox(width: 6.0),
+                      SvgIcons.raising,
+                      const SizedBox(width: 18.0),
+                      const SizedBox(height: 30, child: VerticalDivider()),
+                    ],
+                  ),
+                  const SizedBox(height: 18.0),
+                  Row(
+                    children: [
+                      const SizedBox(width: 8.0),
+                      const SizedBox(height: 30, child: VerticalDivider()),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            text: price,
+                            children: [
+                              TextSpan(
+                                text: "  TMT",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xff8FB946),
+                                ),
+                              ),
+                            ],
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xff676D73),
+                            ),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 30, child: VerticalDivider()),
+                      const SizedBox(width: 8.0),
+                    ],
+                  ),
+                  const SizedBox(height: 18.0),
+                  CircularCountDownTimer(
+                    duration: _duration,
+                    initialDuration: 0,
+                    controller: _controller,
+                    width: size.width * 0.4,
+                    height: size.width * 0.4,
+                    ringColor: Colors.grey[300],
+                    fillColor: Theme.of(context).primaryColor,
+                    backgroundColor: Colors.transparent,
+                    strokeWidth: 8.0,
+                    strokeCap: StrokeCap.round,
+                    textStyle: TextStyle(
+                      fontSize: size.width * 0.08,
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textFormat: CountdownTextFormat.MM_SS,
+                    isReverse: true,
+                    isReverseAnimation: true,
+                    isTimerTextShown: true,
+                    autoStart: false,
+                    onStart: () {},
+                    onComplete: () {},
+                  ),
+                  const SizedBox(height: 18.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: BidButton(
+                          icon: SvgIcons.bid_down(rejectBtnColor),
+                          text: "Ýatyr",
+                          color: rejectBtnColor,
+                          onPressed: isAcceptedOrRejected != null
+                              ? null
+                              : () {
+                                  if (!(isAcceptedOrRejected == false)) {
+                                    socket.emit("buyerbid:insert", {
+                                      "admin_bid_id": currentBid.id,
+                                      "proceed": false,
+                                    });
+                                    print("rejected");
+                                  }
+                                },
+                        ),
+                      ),
+                      const SizedBox(width: 18.0),
+                      Expanded(
+                        child: BidButton(
+                          icon: SvgIcons.bid_up(acceptBtnColor),
+                          text: "Dowam et",
+                          color: acceptBtnColor,
+                          onPressed: isAcceptedOrRejected != null
+                              ? null
+                              : () {
+                                  if (!(isAcceptedOrRejected == true)) {
+                                    socket.emit("buyerbid:insert", {
+                                      "admin_bid_id": currentBid.id,
+                                      "proceed": true,
+                                    });
+                                    print("accepted");
+                                  }
+                                },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18.0),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14.0,
+                      vertical: 16.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Color(buildColor(currentBid, user) ?? 0xffffffff),
+                      border: Border.all(
+                        color: Color(
+                          buildColor(currentBid, user) ?? Constants.appBlue,
+                        ),
+                      ),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "№${widget.lot.me.ticketNumber.toString()}   ${widget.lot.me.firstname} ${widget.lot.me.lastname}",
+                        style: TextStyle(
+                          color: Color(
+                            buildColor(currentBid, user) != null
+                                ? 0xffffffff
+                                : Constants.appBlue,
+                          ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18.0),
+                  Divider(),
+                  const SizedBox(height: 8.0),
+                  if (buyerList.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: Text(
+                          "Gatnaşyjy ýok",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (buyerList.isNotEmpty)
+                    GridView.count(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      crossAxisCount: 4,
+                      childAspectRatio: 3 / 2,
+                      children: buyerList.map((Buyer buyer) {
+                        return buildCard(
+                          color: buildColor(
+                            currentBid,
+                            buyer,
+                          ),
+                          text: buyer.ticketNumber.toString(),
+                        );
+                      }).toList(),
+                    ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: "Ýerleşýän ýeri:\n",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: size.height * 0.015),
+                            children: [
+                              TextSpan(
+                                text: " ${lot.assetAddress}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: size.height * 0.015,
+                                  color: Color(
+                                    Constants.appBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            OutlinedCard(
+                              keyText: "Işiň ugry:",
+                              valueText: "${lot.businessLine?.name ?? ""}",
+                            ),
+                            OutlinedCard(
+                              keyText: "Gurlan ýyly:",
+                              valueText: "${lot.constructionYear}",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Constants.defaultMargin8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            OutlinedCard(
+                              keyText: "Binanyň meýdany (m2):",
+                              valueText: "${lot.formmattedArea()}",
+                            ),
+                            OutlinedCard(
+                              keyText: "Başlangyç bahasy (manat):",
+                              valueText: "${formattedPrice(lot.startingPrice)}",
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18.0),
+                  SizedBox(
+                    width: double.infinity,
+                    height: size.height * 0.3,
+                    child: ScrollConfiguration(
+                      behavior: MyScrollBehavior(),
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 18),
+                        child: Swiper(
+                          itemBuilder: (BuildContext context, int index) {
+                            print(widget.lot.lotImages[index].getImage);
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: MyCachedNetworkImage(
+                                imageurl: widget.lot.lotImages[index].getImage,
+                              ),
+                            );
+                          },
+                          autoplay: true,
+                          itemCount: widget.lot.lotImages.length,
+                          pagination: SwiperPagination(
+                            margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
+                            builder: DotSwiperPaginationBuilder(
+                              color: Colors.white30,
+                              activeColor: Colors.white,
+                              size: 6.0,
+                              activeSize: 8.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: size.height * 0.035,
+          left: 34.0,
+          right: 34.0,
+          child: _blueLabeledHeader(
+            lot.lotNumber,
+            lot.assetName,
+          ),
+        ),
+      ],
+    );
+  }
+
+  _blueLabeledHeader(int number, String content) {
+    final primaryColor = Theme.of(context).primaryColor;
+    return Card(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: primaryColor,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              color: primaryColor,
+              child: Center(
+                child: Text(
+                  "LOT №  $number",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 14,
+              ),
+              child: Center(
+                child: Text(
+                  content,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -525,23 +682,11 @@ class _LotGameState extends State<LotGame> {
       text = "Ýeniji bolduñyz. Gutlaýarys!";
       textColor = Colors.green;
       onPressed = () {};
-    }
-    // else if ([0, 1, 2].contains(widget.lot.step)) {
-    //   text = "Goýlan mukdary yzyna talap edip bilmeýärsiňiz";
-    //   textColor = Colors.red;
-    //   onPressed = () {};
-    // }
-    else if (winner.id != user.id
-        // && ![0, 1, 2].contains(widget.lot.step)
-        &&
-        isApplied == false) {
+    } else if (winner.id != user.id && isApplied == false) {
       text = "Puluňyzyñ yzyna gaýtarylmagyny sora";
       textColor = Color(Constants.appBlue);
       onPressed = () => requestRefund();
-    } else if (winner.id != user.id
-        //  && ![0, 1, 2].contains(widget.lot.step)
-        &&
-        isApplied == true) {
+    } else if (winner.id != user.id && isApplied == true) {
       text = "Puluňyzyñ yzyna gaýtarylmagyny soradyñyz";
       textColor = Colors.orange;
       onPressed = () {};
@@ -603,44 +748,11 @@ class _LotGameState extends State<LotGame> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                // SizedBox(
-                //   width: double.infinity,
-                //   child: AbsorbPointer(
-                //     absorbing: isRefundLoading,
-                //     child: ElevatedButton(
-                //       onPressed: onPressed,
-                //       child: AnimatedSwitcher(
-                //         duration: Duration(milliseconds: 150),
-                //         child: isRefundLoading
-                //             ? Theme(
-                //                 data: Theme.of(context).copyWith(
-                //                   accentColor: const Color(0xFFBA9606),
-                //                 ),
-                //                 child: const ProgressIndicatorSmall(),
-                //               )
-                //             : Text(
-                //                 text,
-                //                 textAlign: TextAlign.center,
-                //                 style: TextStyle(
-                //                   fontSize: 16,
-                //                   fontWeight: FontWeight.bold,
-                //                   color: const Color(0xFFBA9606),
-                //                 ),
-                //               ),
-                //       ),
-                //       style: ElevatedButton.styleFrom(
-                //         padding: EdgeInsets.all(12),
-                //         primary: const Color(0xFFFFFAC7),
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
                       socket.emit("leave.room");
-                      // Wrap Navigator with SchedulerBinding to wait for rendering state before navigating
                       SchedulerBinding.instance.addPostFrameCallback((_) {
                         Navigator.pushAndRemoveUntil(
                           context,
@@ -723,20 +835,28 @@ class _LotGameState extends State<LotGame> {
     }
   }
 
-  Widget buildCard({@required String text, @required int color, double width}) {
+  Widget buildCard(
+      {@required String text, @required dynamic color, double width}) {
     Size size = MediaQuery.of(context).size;
     return Card(
       child: Container(
         width: width ?? size.width,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-            color: Color(color) ?? Theme.of(context).primaryColor),
+          color: color != null ? Color(color) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color != null ? Color(color) : Color(Constants.appBlue),
+          ),
+        ),
         child: Center(
           child: Text(
-            text ?? '',
+            '№${text ?? ''}',
             style: TextStyle(
               fontSize: 22,
-              color: Colors.white,
+              color: color != null
+                  ? const Color(0xFFF5F5F5)
+                  : Color(Constants.appBlue),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -782,5 +902,61 @@ class _LotGameState extends State<LotGame> {
       }
       showSnackbar(context, e.response.toString());
     }
+  }
+}
+
+class BidButton extends StatelessWidget {
+  const BidButton({
+    Key key,
+    @required this.color,
+    @required this.text,
+    @required this.icon,
+    @required this.onPressed,
+  }) : super(key: key);
+
+  final Color color;
+  final String text;
+  final Widget icon;
+  final Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        primary: Colors.white,
+        side: BorderSide(
+          color: color,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(width: 4),
+          SizedBox(
+            height: 16,
+            child: VerticalDivider(
+              color: color,
+              thickness: 1,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              text.toUpperCase(),
+              textAlign: TextAlign.start,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              style: TextStyle(
+                color: color,
+                letterSpacing: -0.2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -17,7 +17,6 @@ import 'package:maliye_app/providers/bookmark_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  // SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
     RestartWidget(
       child: MultiProvider(

@@ -224,7 +224,7 @@ class _OtpCheckState extends State<OtpCheck> {
         if (response.statusCode == 200) {
           log(response.data.toString());
           onSucceed(response.data['token']);
-          showSnackbar(context, "Üstünlikli tamamlandy", true);
+          showSnackbar(context, "Üstünlik hemraňyz bolsun!", true);
         }
       } catch (e) {
         setState(() => isLoading = false);

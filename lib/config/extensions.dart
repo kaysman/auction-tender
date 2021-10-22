@@ -31,9 +31,11 @@ Future<bool> updateAccessToken(BuildContext context) async {
   return false;
 }
 
-formattedPrice(String price) =>
-    NumberFormat.currency(locale: 'uz', symbol: 'TMT')
-        .format(double.tryParse(price));
+formattedPrice(String price) {
+  return NumberFormat.currency(locale: 'uz', symbol: '').format(
+    double.tryParse(price),
+  );
+}
 
 void navigateTo(BuildContext context, Widget page) {
   Navigator.push<dynamic>(

@@ -133,9 +133,6 @@ class LotBig {
           : (json['documents'] ?? {}).keys.map<Document>((key) {
               return Document(
                 title: key,
-                // files: (((json['documents'] ?? {})[key]['files'] ?? []) as List)
-                //     .map((json) => File.fromJson(json))
-                //     .toList(),
                 status: json['documents'][key]['status'],
                 note: json['documents'][key]['note'],
               );

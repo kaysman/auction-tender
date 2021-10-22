@@ -17,6 +17,19 @@ class SvgIcons {
 
   static String get profil => 'assets/svg/profile.svg';
 
+  static Widget get hammer => SvgPicture.asset('assets/svg/hammer.svg');
+  static Widget get raising => SvgPicture.asset("assets/svg/arrow_up.svg");
+  static Widget bid_down([color]) => SvgPicture.asset(
+        "assets/svg/metro-cancel.svg",
+        height: 18,
+        color: color,
+      );
+  static Widget bid_up([color]) => SvgPicture.asset(
+        "assets/svg/accept.svg",
+        height: 18,
+        color: color,
+      );
+
   static Widget get upload =>
       SvgPicture.asset("assets/svg/upload.svg", height: 14, width: 14);
 

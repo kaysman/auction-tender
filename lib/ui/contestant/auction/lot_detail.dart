@@ -300,7 +300,7 @@ class _AuctionInfoBodyState extends State<AuctionInfoBody> {
                       const SizedBox(height: Constants.defaultMargin8),
                       Text.rich(
                         TextSpan(
-                          text: "Ýerleşýän ýeri::\n",
+                          text: "Ýerleşýän ýeri:\n",
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: size.height * 0.015),

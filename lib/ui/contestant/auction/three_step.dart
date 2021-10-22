@@ -376,7 +376,7 @@ class _DocumentAcceptionBodyState extends State<DocumentAcceptionBody> {
     } else if (widget.lot.buyerSubmissionStatus.code == "accepted") {
       text = "Tassyklandy";
       nextPage = null;
-    } else if (!widget.lot.formSubmission) {
+    } else if (widget.lot.documents.isEmpty) {
       text = "Resminama tabşyrmak";
       note = widget.lot.documentSubmissionStatus.note;
       nextPage = DocumentsUpload(
